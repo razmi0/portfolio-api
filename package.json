@@ -4,6 +4,7 @@
     "deploy": "vercel"
   },
   "dependencies": {
+    "@libsql/client": "^0.6.2",
     "hono": "^4.4.5"
   },
   "devDependencies": {

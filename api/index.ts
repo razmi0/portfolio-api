@@ -21,7 +21,8 @@ const app = new Hono().basePath("/api");
 app.get("/", async (c) => {
   console.log("GET /");
   const users = await turso.execute("SELECT * FROM users");
-  return c.json({ message: "Hello Hono!", users });
+  const messages = await turso.execute("SELECT * FROM messages");
+  return c.json({ message: "Hello Hono!", users, messages });
 });
 
 export default handle(app);

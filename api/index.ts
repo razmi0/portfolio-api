@@ -39,22 +39,23 @@ const regexp = {
 const hasLength = (str: string) => str.length > 0;
 const isValidEmail = (email: string) => hasLength(email) && regexp.email.test(email);
 const isValidTel = (tel: string) => hasLength(tel) && regexp.tel.test(tel);
+const userIsReachable = (tel: string, email: string) => isValidEmail(email) || isValidTel(tel);
 
 app.all("/contact", async (c) => {
   console.log(`all : [${c.req.method}] /contact`);
   const res = { authorized: false, success: false };
   const id = uuidv4();
-  const { email, msg, tel, hp } = (await c.req.json()) as ContactFormType;
+  const data = (await c.req.json()) as ContactFormType;
 
   const errors = [
-    !isValidEmail(email) && "Invalid email",
-    !isValidTel(tel) && "Invalid tel",
-    !hasLength(msg) && "Invalid message",
-    hp && "Invalid HP",
+    !isValidEmail(data.email) && "Invalid email",
+    !isValidTel(data.tel) && "Invalid tel",
+    !hasLength(data.msg) && "Invalid message",
+    data.hp && "Invalid HP",
   ];
 
   if (errors.some((e) => e)) {
-    console.log("Invalid form", { email, msg, tel });
+    console.log("Invalid form", { email: data.email, message: data.msg, tel: data.tel });
     const _ = await turso.execute({
       sql: "INSERT INTO error VALUES (?, ?, ?)",
       /* id : varchar, field : varchar, content : varchar */
@@ -66,9 +67,9 @@ app.all("/contact", async (c) => {
   const _ = await turso.execute({
     sql: "INSERT INTO messages VALUES (?, ?, ?, ?)",
     /* varchar, varchar, varchar, text */
-    args: [id, tel, email, msg] as MessagesTableArgs,
+    args: [id, data.tel, data.email, data.msg] as MessagesTableArgs,
   });
-  console.log("Inserted message", id, tel, email, msg);
+  console.log("Inserted message", id, data.tel, data.email, data.msg);
 
   return c.json({ ...res, authorized: true, success: true });
 });

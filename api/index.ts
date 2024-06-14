@@ -15,7 +15,7 @@ const app = new Hono().basePath("/api");
 app.use(
   "/contact",
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://portfolio-two-peach-27.vercel.app"],
     allowMethods: ["POST"],
     allowHeaders: ["Access-Control-Allow-Origin"],
   })

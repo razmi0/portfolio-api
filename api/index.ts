@@ -21,7 +21,7 @@ app.all("/contact", async (c) => {
 
   const res = { authorized: false, success: false };
 
-  const id = uuidv4();
+  const id = buildId();
   const data = (await c.req.json()) as ContactFormType;
 
   const { errors, hasError } = validateContactForm(data);
@@ -35,5 +35,10 @@ app.all("/contact", async (c) => {
 
   return c.json({ ...res, authorized: true, success: true });
 });
+
+const buildId = () => {
+  const date = new Date();
+  return [date.getHours(), date.getMinutes(), date.getSeconds(), uuidv4().slice(5)].map((d) => d.toString()).join("");
+};
 
 export default handle(app);

@@ -4,23 +4,6 @@ import { handle } from "hono/vercel";
 import { v4 as uuidv4 } from "uuid";
 import turso from "./db";
 
-console.log("Server started!");
-
-export const config = {
-  runtime: "edge",
-};
-
-const app = new Hono().basePath("/api");
-
-app.use(
-  "/contact",
-  cors({
-    origin: ["https://portfolio-two-peach-27.vercel.app"],
-    allowMethods: ["POST"],
-    allowHeaders: ["Access-Control-Allow-Origin"],
-  })
-);
-
 type ContactFormType = {
   tel: string;
   email: string;
@@ -30,6 +13,33 @@ type ContactFormType = {
 
 type ErrorTableArgs = [string, string, string];
 type MessagesTableArgs = [string, string, string, string];
+
+console.log("Server started!");
+
+const frontOrigin =
+  process.env.NODE_ENV === "development"
+    ? `${process.env.DEV_FRONT_ORIGIN}${process.env.DEV_FRONT_PORT}`
+    : process.env.PROD_FRONT_ORIGIN;
+
+if (!frontOrigin) throw new Error("Front origin is not set");
+
+const basePath = process.env.API_BASEPATH;
+if (!basePath) throw new Error("Base path is not set");
+
+export const config = {
+  runtime: "edge",
+};
+
+const app = new Hono().basePath(basePath);
+
+app.use(
+  "/contact",
+  cors({
+    origin: [frontOrigin],
+    allowMethods: ["POST"],
+    allowHeaders: ["Access-Control-Allow-Origin"],
+  })
+);
 
 const regexp = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,

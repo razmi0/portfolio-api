@@ -21,7 +21,7 @@ const frontOrigin =
     ? `${process.env.DEV_FRONT_ORIGIN}${process.env.DEV_FRONT_PORT}`
     : process.env.PROD_FRONT_ORIGIN;
 
-if (!frontOrigin) throw new Error("Front origin is not set");
+if (!frontOrigin) throw new Error(`Front origin is not set : ${frontOrigin?.slice(0, 5)}`);
 
 const basePath = process.env.API_BASEPATH;
 if (!basePath) throw new Error("Base path is not set");

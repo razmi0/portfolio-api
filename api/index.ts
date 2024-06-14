@@ -1,30 +1,12 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { handle } from "hono/vercel";
 import { v4 as uuidv4 } from "uuid";
-import turso from "./db";
-
-type ContactFormType = {
-  tel: string;
-  email: string;
-  msg: string;
-  hp?: string;
-};
-
-type ErrorTableArgs = [string, string, string];
-type MessagesTableArgs = [string, string, string, string];
+import { insertErrors, insertMessage } from "./db";
+import { basePath, setupCors as cors } from "./setup";
+import type { ContactFormType } from "./types";
+import { validateContactForm } from "./validation";
 
 console.log("Server started!");
-
-const frontOrigin =
-  process.env.NODE_ENV === "development"
-    ? `${process.env.DEV_FRONT_ORIGIN}${process.env.DEV_FRONT_PORT}`
-    : process.env.PROD_FRONT_ORIGIN;
-
-if (!frontOrigin) throw new Error(`Front origin is not set : ${frontOrigin?.slice(0, 5)}`);
-
-const basePath = process.env.API_BASEPATH;
-if (!basePath) throw new Error("Base path is not set");
 
 export const config = {
   runtime: "edge",
@@ -32,54 +14,24 @@ export const config = {
 
 const app = new Hono().basePath(basePath);
 
-app.use(
-  "/contact",
-  cors({
-    origin: [frontOrigin],
-    allowMethods: ["POST"],
-    allowHeaders: ["Access-Control-Allow-Origin"],
-  })
-);
-
-const regexp = {
-  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  tel: /^\d{10}$/,
-};
-
-const hasLength = (str: string) => str.length > 0;
-const isValidEmail = (email: string) => hasLength(email) && regexp.email.test(email);
-const isValidTel = (tel: string) => hasLength(tel) && regexp.tel.test(tel);
-const userIsReachable = (tel: string, email: string) => isValidEmail(email) || isValidTel(tel);
+app.use("/contact", cors);
 
 app.all("/contact", async (c) => {
   console.log(`all : [${c.req.method}] /contact`);
+
   const res = { authorized: false, success: false };
+
   const id = uuidv4();
   const data = (await c.req.json()) as ContactFormType;
 
-  const errors = [
-    !isValidEmail(data.email) && "Invalid email",
-    !isValidTel(data.tel) && "Invalid tel",
-    !hasLength(data.msg) && "Invalid message",
-    data.hp && "Invalid HP",
-  ];
+  const { errors, hasError } = validateContactForm(data);
 
-  if (errors.some((e) => e) || !userIsReachable(data.tel, data.email)) {
-    console.log("Invalid form", { email: data.email, message: data.msg, tel: data.tel });
-    const _ = await turso.execute({
-      sql: "INSERT INTO error VALUES (?, ?, ?)",
-      /* id : varchar, field : varchar, content : varchar */
-      args: [id, "contact", errors.filter((e) => e).join(", ")] as ErrorTableArgs,
-    });
-    return c.json({ ...res, errors });
+  if (hasError) {
+    const _ = await insertErrors(id, errors as string[], "contact");
+    return c.json(res);
   }
 
-  const _ = await turso.execute({
-    sql: "INSERT INTO messages VALUES (?, ?, ?, ?)",
-    /* varchar, varchar, varchar, text */
-    args: [id, data.tel, data.email, data.msg] as MessagesTableArgs,
-  });
-  console.log("Inserted message", id, data.tel, data.email, data.msg);
+  const _ = await insertMessage({ ...data, id });
 
   return c.json({ ...res, authorized: true, success: true });
 });

@@ -54,7 +54,7 @@ app.all("/contact", async (c) => {
     data.hp && "Invalid HP",
   ];
 
-  if (errors.some((e) => e)) {
+  if (errors.some((e) => e) || !userIsReachable(data.tel, data.email)) {
     console.log("Invalid form", { email: data.email, message: data.msg, tel: data.tel });
     const _ = await turso.execute({
       sql: "INSERT INTO error VALUES (?, ?, ?)",

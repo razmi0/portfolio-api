@@ -5,5 +5,7 @@ export type ContactFormType = {
   hp?: string;
 };
 
-export type ErrorTableArgs = [string, string, string];
 export type MessagesTableArgs = [string, string, string, string];
+
+export type ErrorTableArgs = [string, string, string];
+export type ErrorTableFieldType = "contact";

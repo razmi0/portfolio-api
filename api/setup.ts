@@ -1,4 +1,5 @@
 import { cors } from "hono/cors";
+import { v4 as uuidv4 } from "uuid";
 
 const frontOrigin = (
   process.env.NODE_ENV === "development"
@@ -16,5 +17,7 @@ const setupCors = cors({
   allowMethods: ["POST"],
   allowHeaders: ["Access-Control-Allow-Origin"],
 });
+
+
 
 export { basePath, frontOrigin, setupCors };

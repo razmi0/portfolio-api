@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
-import { v4 as uuidv4 } from "uuid";
-import { insertErrors, insertMessage } from "./db";
+import { buildId } from "./helper";
+import { db } from "./model";
 import { basePath, setupCors as cors } from "./setup";
 import type { ContactFormType } from "./types";
 import { validateContactForm } from "./validation";
@@ -13,8 +13,12 @@ export const config = {
 };
 
 const app = new Hono().basePath(basePath);
-
 app.use("/contact", cors);
+app.use("/", cors);
+
+app.get("/", async (c) => {
+  return c.json({ xxx: "xxxx" });
+});
 
 app.all("/contact", async (c) => {
   console.log(`all : [${c.req.method}] /contact`);
@@ -27,18 +31,13 @@ app.all("/contact", async (c) => {
   const { errors, hasError } = validateContactForm(data);
 
   if (hasError) {
-    const _ = await insertErrors(id, errors as string[], "contact");
+    const _ = await db.insertErrors(id, errors, "contact");
     return c.json(res);
   }
 
-  const _ = await insertMessage({ ...data, id });
+  const _ = await db.insertMessage({ ...data, id });
 
   return c.json({ ...res, authorized: true, success: true });
 });
-
-const buildId = () => {
-  const date = new Date();
-  return [date.getHours(), date.getMinutes(), date.getSeconds(), uuidv4().slice(5)].map((d) => d.toString()).join("");
-};
 
 export default handle(app);

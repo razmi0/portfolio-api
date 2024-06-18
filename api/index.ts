@@ -14,7 +14,6 @@ export const config = {
 
 const app = new Hono().basePath(basePath);
 app.use("/contact", cors);
-app.use("/", cors);
 
 app.get("/", async (c) => {
   return c.json({ xxx: "xxxx" });

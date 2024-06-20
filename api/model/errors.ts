@@ -9,12 +9,11 @@ import turso from "./index";
  */
 const insertErrors = async (
   id: string,
-  errors: ErrorTableArgs | (string | false | undefined)[],
+  errors: (string | boolean | undefined)[],
   field: ErrorTableFieldType = "contact"
 ) => {
   const dbRes = await turso.execute({
     sql: "INSERT INTO error VALUES (?, ?, ?)",
-
     args: [id, field, errors.filter((e) => e).join(", ")] as ErrorTableArgs,
   });
   return dbRes;
@@ -46,4 +45,4 @@ const getErrors = async (id: string) => {
   return dbRes;
 };
 
-export { insertErrors, deleteErrors, getErrors };
+export { deleteErrors, getErrors, insertErrors };

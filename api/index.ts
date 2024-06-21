@@ -3,8 +3,8 @@ import { handle } from "hono/vercel";
 import { buildId } from "./helper";
 import { db } from "./model";
 import { basePath, setupCors as cors } from "./setup";
-import type { ContactFormType } from "./types";
-import { validateContactForm } from "./validation";
+import type { ContactFormType, MinimalResponse, UserAgentInfo } from "./types";
+import { isValuableAgentData, validateContactForm } from "./validation";
 
 console.log("Server started!");
 
@@ -14,15 +14,12 @@ export const config = {
 
 const app = new Hono().basePath(basePath);
 app.use("/contact", cors);
-
-app.get("/", async (c) => {
-  return c.json({ xxx: "xxxx" });
-});
+app.use("/agent", cors);
 
 app.all("/contact", async (c) => {
   console.log(`all : [${c.req.method}] /contact`);
 
-  const res = { authorized: false, success: false };
+  const res: MinimalResponse = { authorized: false, success: false };
 
   const id = buildId();
   const data = (await c.req.json()) as ContactFormType;
@@ -36,7 +33,26 @@ app.all("/contact", async (c) => {
 
   const _ = await db.insertMessage({ ...data, id });
 
-  return c.json({ ...res, authorized: true, success: true });
+  res.authorized = true;
+  res.success = true;
+
+  return c.json(res);
+});
+
+app.all("/agent", async (c) => {
+  console.log(`all : [${c.req.method}] /agent`);
+
+  const res: MinimalResponse = { authorized: false, success: false };
+  const id = buildId();
+  const data: UserAgentInfo = await c.req.json();
+  if (!isValuableAgentData(data)) return c.json(res);
+
+  const success = await db.startAgentTransaction({ ...data, id });
+
+  res.authorized = success;
+  res.success = success;
+
+  return c.json(res);
 });
 
 export default handle(app);

@@ -1,5 +1,6 @@
 import { createClient } from "@libsql/client";
-import { insertErrors, deleteErrors, getErrors } from "./errors";
+import { startAgentTransaction } from "./agent";
+import { deleteErrors, getErrors, insertErrors } from "./errors";
 import { insertMessage } from "./message";
 
 if (!process.env.TURSO_DATABASE_URL) throw new Error("TURSO_DATABASE_URL is not set");
@@ -11,9 +12,11 @@ const turso = createClient({
 });
 
 export default turso;
+
 export const db = {
   insertErrors,
   deleteErrors,
   getErrors,
   insertMessage,
+  startAgentTransaction,
 };

@@ -13,7 +13,6 @@ const insertMessage = async (data: ContactFormType & { id: string }) => {
   const { id, tel, email, msg } = data;
   const dbRes = await turso.execute({
     sql: "INSERT INTO messages VALUES (?, ?, ?, ?)",
-    /* varchar, varchar, varchar, text */
     args: [id, tel, email, msg] as MessagesTableArgs,
   });
   console.log("Inserted message", id, data.tel, data.email, data.msg);

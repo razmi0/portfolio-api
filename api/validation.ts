@@ -1,4 +1,4 @@
-import { ContactFormType } from "./types";
+import { ContactFormType, UserAgentInfo } from "./types";
 
 type ErrorsType = {
   email: boolean | string;
@@ -49,4 +49,15 @@ export const validateContactForm = (data: ContactFormType) => {
   }
 
   return { errors: formatedErrors, hasError: false };
+};
+
+export const isValuableAgentData = (data: UserAgentInfo) => {
+  const noValue = "unknown";
+  let c = 0;
+  for (const key in data) {
+    if (data[key as keyof UserAgentInfo].includes(noValue) || data[key as keyof UserAgentInfo] === "") {
+      c++;
+    }
+  }
+  return c < 5;
 };

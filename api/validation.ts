@@ -1,18 +1,5 @@
-import { ContactFormType, UserAgentInfo } from "./types";
-
-type ErrorsType = {
-  email: boolean | string;
-  tel: boolean | string;
-  msg: boolean | string;
-  reachable: boolean | string;
-};
-
-const errorsInit = {
-  email: false,
-  tel: false,
-  msg: false,
-  reachable: false,
-};
+import type { ResultSet } from "@libsql/client/.";
+import type { ContactFormType, ErrorLoginFormType, ErrorsContactFormType, LoginFormType, UserAgentInfo } from "./types";
 
 const REGEXP = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -29,7 +16,7 @@ export const validateContactForm = (data: ContactFormType) => {
   let telError = !isValidTel(data.tel);
   if (emailError && telError) reachabilityError = true;
 
-  const errors: ErrorsType = {
+  const errors: ErrorsContactFormType = {
     email: emailError && "Email invalide",
     tel: telError && "Téléphone invalide",
     msg: !hasLength(data.msg) && "Message requis",
@@ -61,3 +48,31 @@ export const isValuableAgentData = (data: UserAgentInfo) => {
   }
   return c < 5;
 };
+
+type LoginErrorType = {
+  errors: ErrorLoginFormType;
+  hasError: boolean;
+};
+export const validateLoginForm = (data: LoginFormType): LoginErrorType => {
+  const newErrors: ErrorLoginFormType = {
+    username: !data.username && "Nom d'utilisateur requis",
+    password: !data.password && "Mot de passe requis",
+  };
+
+  const hpError = data.hp && "Invalid HP";
+
+  return (!newErrors.username && !newErrors.password) || hpError
+    ? { hasError: false, errors: newErrors }
+    : { hasError: true, errors: newErrors };
+};
+
+export const isInvalidUser = (user: ResultSet): LoginErrorType => {
+  const withError = {
+    errors: { username: "Invalid username or password", password: "Invalid username or password" },
+    hasError: true,
+  };
+  const woError = { errors: { username: false, password: false }, hasError: false } as LoginErrorType;
+  return user.rows[0].success === 0 ? withError : woError;
+};
+
+// if(user.rows[0].success === 0) return c.json({res, errors: {username: "Invalid username or password", password: "Invalid username or password"}});

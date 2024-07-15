@@ -1,5 +1,4 @@
 import { cors } from "hono/cors";
-import { v4 as uuidv4 } from "uuid";
 
 const frontOrigin = (
   process.env.NODE_ENV === "development"
@@ -8,16 +7,22 @@ const frontOrigin = (
 ) as string;
 
 if (!frontOrigin) throw new Error(`Front origin is not set : ${frontOrigin?.slice(0, 5)}`);
+if (!process.env.TOKEN_SECRET) throw new Error("Token secret is not set");
 
 const basePath = process.env.API_BASEPATH as string;
 if (!basePath) throw new Error("Base path is not set");
 
 const setupCors = cors({
   origin: [frontOrigin],
-  allowMethods: ["POST"],
+  allowMethods: ["POST", "GET"],
   allowHeaders: ["Access-Control-Allow-Origin"],
 });
 
+const authCors = cors({
+  origin: [frontOrigin], // frontOrigin
+  allowMethods: ["POST", "GET", "OPTIONS"],
+  allowHeaders: ["Access-Control-Allow-Origin", "Authorization", "Access-Control-Allow-Credentials"],
+  credentials: true,
+});
 
-
-export { basePath, frontOrigin, setupCors };
+export { authCors, basePath, frontOrigin, setupCors };

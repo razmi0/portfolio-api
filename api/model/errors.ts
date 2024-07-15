@@ -6,12 +6,9 @@ import turso from "./index";
  * @table error
  * @column id : varchar
  * @column field : varchar
+ * @column content : varchar
  */
-const insertErrors = async (
-  id: string,
-  errors: (string | boolean | undefined)[],
-  field: ErrorTableFieldType = "contact"
-) => {
+const insertErrors = async (id: string, errors: any[], field: ErrorTableFieldType = "contact") => {
   const dbRes = await turso.execute({
     sql: "INSERT INTO error VALUES (?, ?, ?)",
     args: [id, field, errors.filter((e) => e).join(", ")] as ErrorTableArgs,

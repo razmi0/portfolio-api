@@ -10,10 +10,17 @@ type TimeStamp = {
   hours?: number;
   minutes?: number;
 };
-const timeStamp = (time: TimeStamp) =>
-  Math.floor(Date.now() / 1000) +
-  (time.days || 0) * 24 * 60 * 60 +
-  (time.hours || 0) * 60 * 60 +
-  (time.minutes || 0) * 60;
+// return a timestamp in the future based on the current time and the Date object
+const timeStamp = (time: TimeStamp) => {
+  const msNow = Date.now();
+  const timestamp =
+    Math.floor(msNow / 1000) + (time.days || 0) * 24 * 60 * 60 + (time.hours || 0) * 60 * 60 + (time.minutes || 0) * 60;
+  const date = new Date(timestamp * 1000);
+
+  return {
+    date,
+    timestamp,
+  };
+};
 
 export { buildId, timeStamp };

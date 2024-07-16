@@ -126,7 +126,7 @@ app.all("/login", async (c) => {
 
   // AUTHENTICATED USER
 
-  const tsOptions = { minutes: 5 };
+  const tsOptions = { days: 2 };
   const ts = timeStamp(tsOptions);
   const payload = {
     user: data.username,
@@ -138,10 +138,9 @@ app.all("/login", async (c) => {
   setCookie(c, "token", token, {
     httpOnly: true,
     secure: true,
-    domain: "portfolio-two-peach-27.vercel.app",
+    domain: ".vercel.app",
     expires: ts.date,
-    maxAge: tsOptions.minutes * 60,
-    // path: "/",
+    maxAge: tsOptions.days * 24 * 60 * 60, // 2 days in seconds
     sameSite: "none",
   });
 

@@ -24,7 +24,6 @@ const timeStamp = (time: TimeStamp) => {
     (time.hours || 0) * 60 * 60 * 1000 +
     (time.minutes || 0) * 60 * 1000 +
     (time.seconds || 0) * 1000;
-
   return {
     date: new Date(timestamp),
     timestamp,

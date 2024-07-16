@@ -132,7 +132,6 @@ app.all("/login", async (c) => {
     user: data.username,
     exp: ts.timestamp,
   };
-  console.log(ts);
 
   const token = await sign(payload, process.env.TOKEN_SECRET as string);
 

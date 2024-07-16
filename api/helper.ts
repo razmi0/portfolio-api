@@ -5,22 +5,28 @@ const buildId = () => {
   return [date.getHours(), date.getMinutes(), date.getSeconds(), uuidv4().slice(5)].map((d) => d.toString()).join("");
 };
 
-type TimeStamp = {
-  days?: number;
-  hours?: number;
-  minutes?: number;
-};
+type TimeStamp = Partial<{
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}>;
+
 /**
- * return an object with a date and a timestamp in seconds
+ * @description Create a timestamp
+ * @returns - Date object and timestamp in milliseconds
  */
 const timeStamp = (time: TimeStamp) => {
   const msNow = Date.now();
   const timestamp =
-    Math.floor(msNow / 1000) + (time.days || 0) * 24 * 60 * 60 + (time.hours || 0) * 60 * 60 + (time.minutes || 0) * 60;
-  const date = new Date(timestamp * 1000);
+    msNow +
+    (time.days || 0) * 24 * 60 * 60 * 1000 +
+    (time.hours || 0) * 60 * 60 * 1000 +
+    (time.minutes || 0) * 60 * 1000 +
+    (time.seconds || 0) * 1000;
 
   return {
-    date,
+    date: new Date(timestamp),
     timestamp,
   };
 };

@@ -126,11 +126,13 @@ app.all("/login", async (c) => {
 
   // AUTHENTICATED USER
 
-  const ts = timeStamp({ minutes: 5 });
+  const tsOptions = { minutes: 5 };
+  const ts = timeStamp(tsOptions);
   const payload = {
     user: data.username,
     exp: ts.timestamp,
   };
+  console.log(ts);
 
   const token = await sign(payload, process.env.TOKEN_SECRET as string);
 
@@ -139,7 +141,7 @@ app.all("/login", async (c) => {
     secure: true,
     domain: "portfolio-two-peach-27.vercel.app",
     expires: ts.date,
-    maxAge: ts.timestamp,
+    maxAge: tsOptions.minutes * 60,
     path: "/",
   });
 

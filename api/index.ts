@@ -28,9 +28,12 @@ app.use(
   async (c, next) => {
     const res: MinimalResponse = { authorized: false, success: false };
     console.log(`all : [${c.req.method}] /auth`);
+    // manually adding this header in client side
+    // => what i want on the client is that the browser will automatically add this header
+    // => what i want is to get the token from the client side and compare it with the server side token
     const clientTk = c.req.header("Authorization");
     console.log("clientTk : ", clientTk);
-    console.log("ss cookie : ", getCookie(c)); // server side cookie
+    console.log("ss cookie : ", getCookie(c)); // server side cookie ?
     if (!clientTk) return c.json(res);
     await next();
   }
@@ -136,6 +139,7 @@ app.all("/login", async (c) => {
     secure: true,
     domain: "portfolio-two-peach-27.vercel.app",
     expires: ts.date,
+    maxAge: ts.timestamp,
     path: "/",
   });
 

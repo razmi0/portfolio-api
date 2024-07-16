@@ -10,7 +10,9 @@ type TimeStamp = {
   hours?: number;
   minutes?: number;
 };
-// return a timestamp in the future based on the current time and the Date object
+/**
+ * return an object with a date and a timestamp in seconds
+ */
 const timeStamp = (time: TimeStamp) => {
   const msNow = Date.now();
   const timestamp =

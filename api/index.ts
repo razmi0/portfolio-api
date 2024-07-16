@@ -30,10 +30,9 @@ app.use(
     console.log(`all : [${c.req.method}] /auth`);
     const clientTk = c.req.header("Authorization");
     console.log("clientTk : ", clientTk);
-    console.log("ss cookie : ", getCookie(c, "token")); // server side cookie
+    console.log("ss cookie : ", getCookie(c)); // server side cookie
     if (!clientTk) return c.json(res);
     await next();
-    // return c.json({ authorized: true, hi: "there oooo" });
   }
   // bearerAuth({
   //   verifyToken: async (token, c) => {
@@ -124,15 +123,21 @@ app.all("/login", async (c) => {
 
   // AUTHENTICATED USER
 
-  const TK_LIFETIME = { minutes: 5 };
+  const ts = timeStamp({ minutes: 5 });
   const payload = {
     user: data.username,
-    exp: timeStamp(TK_LIFETIME),
+    exp: ts.timestamp,
   };
 
   const token = await sign(payload, process.env.TOKEN_SECRET as string);
 
-  setCookie(c, "token", token, { httpOnly: true, secure: true }); // , { httpOnly: true, secure: true, sameSite: "strict" }
+  setCookie(c, "token", token, {
+    httpOnly: true,
+    secure: true,
+    domain: "portfolio-two-peach-27.vercel.app",
+    expires: ts.date,
+    path: "/",
+  });
 
   res.authorized = true;
   res.success = true;

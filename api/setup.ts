@@ -12,11 +12,6 @@ if (!process.env.TOKEN_SECRET) throw new Error("Token secret is not set");
 const basePath = process.env.API_BASEPATH as string;
 if (!basePath) throw new Error("Base path is not set");
 
-console.log("NODE_ENV : ", process.env.NODE_ENV);
-console.log("Front origin : ", frontOrigin);
-console.log("Base path : ", basePath);
-console.log("Token secret", process.env.TOKEN_SECRET.slice(0, 5));
-
 const setupCors = cors({
   origin: [frontOrigin],
   allowMethods: ["POST", "GET"],

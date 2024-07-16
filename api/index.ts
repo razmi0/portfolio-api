@@ -20,6 +20,36 @@ app.use("/contact", cors);
 app.use("/agent", cors);
 app.use("/login", cors);
 
+// app.use("/auth/", authCors);
+
+app.use(
+  "/auth",
+  authCors,
+  async (c, next) => {
+    const res: MinimalResponse = { authorized: false, success: false };
+    console.log(`all : [${c.req.method}] /auth`);
+    const clientTk = c.req.header("Authorization");
+    console.log("clientTk : ", clientTk);
+    console.log("ss cookie : ", getCookie(c, "token")); // server side cookie
+    if (!clientTk) return c.json(res);
+    await next();
+    // return c.json({ authorized: true, hi: "there oooo" });
+  }
+  // bearerAuth({
+  //   verifyToken: async (token, c) => {
+  //     console.log("ss cookie : ", getCookie(c, "token")); // server side cookie
+  //     console.log("client cookie : ", token); // client side cookie (token)
+  //     return token === getCookie(c, "token");
+  //   },
+  // })
+);
+
+app.all("/auth", async (c) => {
+  const res = { authorized: true, success: true };
+  console.log(`${c.req.method} /auth`);
+  return c.json(res);
+});
+
 /**
  * @description Contact form endpoint
  * @method POST
@@ -112,33 +142,6 @@ app.all("/login", async (c) => {
 
   return c.json({ res, token, payload });
 });
-
-// app.use("/auth/", authCors);
-
-app.use(
-  "/auth",
-  authCors,
-  async (c) => {
-    console.log(`all : [${c.req.method}] /auth`);
-    const clientTk = c.req.header("Authorization");
-    console.log("clientTk : ", clientTk);
-    console.log("ss cookie : ", getCookie(c, "token")); // server side cookie
-    return c.json({ authorized: true, hi: "there oooo" });
-  }
-  // bearerAuth({
-  //   verifyToken: async (token, c) => {
-  //     console.log("ss cookie : ", getCookie(c, "token")); // server side cookie
-  //     console.log("client cookie : ", token); // client side cookie (token)
-  //     return token === getCookie(c, "token");
-  //   },
-  // })
-);
-
-// app.all("/auth/hi", async (c) => {
-//   console.log(`${c.req.method} /auth/hi`);
-//   console.log("ss cookie : ", c.header); // server side cookie
-//   return c.json({ hi: "there" });
-// });
 
 console.log("/** END **/");
 

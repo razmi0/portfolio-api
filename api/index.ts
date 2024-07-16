@@ -141,7 +141,7 @@ app.all("/login", async (c) => {
     domain: "portfolio-two-peach-27.vercel.app",
     expires: ts.date,
     maxAge: tsOptions.minutes * 60,
-    path: "/",
+    // path: "/",
     sameSite: "none",
   });
 

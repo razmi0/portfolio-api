@@ -138,7 +138,6 @@ app.all("/login", async (c) => {
   setCookie(c, "token", token, {
     httpOnly: true,
     secure: true,
-    domain: ".vercel.app",
     path: "/auth",
     expires: ts.date,
     maxAge: tsOptions.days * 24 * 60 * 60, // 2 days in seconds

@@ -27,6 +27,7 @@ const authCors = cors({
   origin: [frontOrigin], // frontOrigin
   allowMethods: ["POST", "GET", "OPTIONS"],
   allowHeaders: ["Access-Control-Allow-Origin", "Authorization", "Access-Control-Allow-Credentials"],
+  exposeHeaders: ["Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"],
   credentials: true,
 });
 

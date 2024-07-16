@@ -142,6 +142,7 @@ app.all("/login", async (c) => {
     expires: ts.date,
     maxAge: tsOptions.minutes * 60,
     path: "/",
+    sameSite: "none",
   });
 
   res.authorized = true;

@@ -1,7 +1,12 @@
+/**
+ * @todo the client will automatically add this cookie
+ * @todo the server will automatically check the cookie and compare it with the server side token
+ */
+
 import { Hono } from "hono";
-import { getCookie, setCookie } from "hono/cookie";
+import { setCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
-import { sign } from "hono/jwt";
+import { sign, verify } from "hono/jwt";
 import { handle } from "hono/vercel";
 import { buildId, timeStamp } from "./helper";
 import { db } from "./model";
@@ -10,6 +15,7 @@ import type { ContactFormType, LoginFormType, MinimalResponse, UserAgentInfo } f
 import { isInvalidUser, isValuableAgentData, validateContactForm, validateLoginForm } from "./validation";
 console.log("/** START **/");
 
+const tkSec = process.env.TOKEN_SECRET;
 export const config = {
   runtime: "edge",
 };
@@ -19,37 +25,13 @@ const app = new Hono().basePath(basePath);
 app.use("/contact", cors);
 app.use("/agent", cors);
 app.use("/login", cors);
-
-// app.use("/auth/", authCors);
-
-app.use(
-  "/auth",
-  authCors,
-  async (c, next) => {
-    const res: MinimalResponse = { authorized: false, success: false };
-    console.log(`all : [${c.req.method}] /auth`);
-    // manually adding this header in client side
-    // => what i want on the client is that the browser will automatically add this header
-    // => what i want is to get the token from the client side and compare it with the server side token
-    const clientTk = c.req.header("Authorization");
-    console.log("clientTk : ", clientTk);
-    console.log("ss cookie : ", getCookie(c)); // server side cookie ?
-    if (!clientTk) return c.json(res);
-    await next();
-  }
-  // bearerAuth({
-  //   verifyToken: async (token, c) => {
-  //     console.log("ss cookie : ", getCookie(c, "token")); // server side cookie
-  //     console.log("client cookie : ", token); // client side cookie (token)
-  //     return token === getCookie(c, "token");
-  //   },
-  // })
-);
-
-app.all("/auth", async (c) => {
-  const res = { authorized: true, success: true };
-  console.log(`${c.req.method} /auth`);
-  return c.json(res);
+app.use("/auth", authCors, async (c, next) => {
+  const clientTk = c.req.header("Authorization");
+  if (!clientTk) throw new HTTPException(401, { message: "Unauthorized" });
+  const decodedPayload = await verify(clientTk, tkSec as string, "HS256");
+  console.log("decodedPayload : ", decodedPayload);
+  if (!decodedPayload) throw new HTTPException(401, { message: "Unauthorized" });
+  await next();
 });
 
 /**
@@ -133,7 +115,7 @@ app.all("/login", async (c) => {
     exp: ts.timestamp,
   };
 
-  const token = await sign(payload, process.env.TOKEN_SECRET as string);
+  const token = await sign(payload, tkSec as string);
 
   setCookie(c, "token", token, {
     httpOnly: true,
@@ -148,11 +130,15 @@ app.all("/login", async (c) => {
   res.success = true;
 
   console.log("Login success", data.username);
-  console.log("Origin : ", c.req.header());
 
   return c.json({ res, token, payload });
 });
 
-console.log("/** END **/");
+app.all("/auth/*", async (c) => {
+  console.log(`${c.req.method} /auth`);
+  const res = { authorized: true, success: true };
+  return c.json(res);
+});
 
+console.log("/** END **/");
 export default handle(app);

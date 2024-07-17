@@ -25,9 +25,13 @@ const app = new Hono().basePath(basePath);
 app.use("/contact", cors);
 app.use("/agent", cors);
 app.use("/login", cors);
-app.use("/auth", authCors, async (c, next) => {
+app.use("/auth/*", authCors, async (c, next) => {
   const clientTk = c.req.header("Authorization")?.split(" ")[1];
   if (!clientTk) throw new HTTPException(401, { message: "Unauthorized" });
+  /**
+   * user : string
+   * exp : number
+   */
   const decodedPayload = await verify(clientTk, tkSec as string, "HS256");
   console.log("decodedPayload : ", decodedPayload);
   if (!decodedPayload) throw new HTTPException(401, { message: "Unauthorized" });
@@ -134,9 +138,15 @@ app.all("/login", async (c) => {
   return c.json({ res, token, payload });
 });
 
-app.all("/auth/*", async (c) => {
+app.all("/auth/hi", async (c) => {
   console.log(`${c.req.method} /auth`);
-  const res = { authorized: true, success: true };
+  const res = { authorized: true, success: true, message: "Hello, you are authorized from hi" };
+  return c.json(res);
+});
+
+app.all("/auth/ho", async (c) => {
+  console.log(`${c.req.method} /auth`);
+  const res = { authorized: true, success: true, message: "Hello, you are authorized from hoo" };
   return c.json(res);
 });
 

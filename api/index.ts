@@ -26,7 +26,7 @@ app.use("/contact", cors);
 app.use("/agent", cors);
 app.use("/login", cors);
 app.use("/auth", authCors, async (c, next) => {
-  const clientTk = c.req.header("Authorization");
+  const clientTk = c.req.header("Authorization")?.split(" ")[1];
   if (!clientTk) throw new HTTPException(401, { message: "Unauthorized" });
   const decodedPayload = await verify(clientTk, tkSec as string, "HS256");
   console.log("decodedPayload : ", decodedPayload);

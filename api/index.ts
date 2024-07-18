@@ -13,7 +13,6 @@ import { db } from "./model";
 import { authCors, basePath, setupCors as cors } from "./setup";
 import type { ContactFormType, LoginFormType, MinimalResponse, UserAgentInfo } from "./types";
 import { isInvalidUser, isValuableAgentData, validateContactForm, validateLoginForm } from "./validation";
-console.log("/** START **/");
 
 const tkSec = process.env.TOKEN_SECRET;
 export const config = {
@@ -33,7 +32,7 @@ app.use("/auth/*", authCors, async (c, next) => {
    * exp : number
    */
   const decodedPayload = await verify(clientTk, tkSec as string, "HS256");
-  console.log("decodedPayload : ", decodedPayload);
+  console.log("connection : ", decodedPayload);
   if (!decodedPayload) throw new HTTPException(401, { message: "Unauthorized" });
   await next();
 });
@@ -142,29 +141,29 @@ app.get("/auth/msgs", async (c) => {
   console.log(`${c.req.method} /auth/msgs`);
   const res = await db.findAll("messages");
   if (!res) return c.json({ success: false });
-  return c.json(res);
+  return c.json(res.rows);
 });
 
 app.get("/auth/users", async (c) => {
   console.log(`${c.req.method} /auth/users`);
   const res = await db.findAllUsers();
   if (!res) return c.json({ success: false });
-  return c.json(res);
+  return c.json(res.rows);
 });
 
 app.get("/auth/agents", async (c) => {
   console.log(`${c.req.method} /auth/agents`);
   const res = await db.findAll("agent");
   if (!res) return c.json({ success: false });
-  return c.json(res);
+
+  return c.json(res.rows);
 });
 
 app.get("/auth/errors", async (c) => {
   console.log(`${c.req.method} /auth/errors`);
   const res = await db.findAll("error");
   if (!res) return c.json({ success: false });
-  return c.json(res);
+  return c.json(res.rows);
 });
 
-console.log("/** END **/");
 export default handle(app);

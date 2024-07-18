@@ -138,15 +138,31 @@ app.all("/login", async (c) => {
   return c.json({ res, token, payload });
 });
 
-app.all("/auth/hi", async (c) => {
-  console.log(`${c.req.method} /auth`);
-  const res = { authorized: true, success: true, message: "Hello, you are authorized from hi" };
+app.get("/auth/msgs", async (c) => {
+  console.log(`${c.req.method} /auth/msgs`);
+  const res = await db.findAll("messages");
+  if (!res) return c.json({ success: false });
   return c.json(res);
 });
 
-app.all("/auth/ho", async (c) => {
-  console.log(`${c.req.method} /auth`);
-  const res = { authorized: true, success: true, message: "Hello, you are authorized from hoo" };
+app.get("/auth/users", async (c) => {
+  console.log(`${c.req.method} /auth/users`);
+  const res = await db.findAllUsers();
+  if (!res) return c.json({ success: false });
+  return c.json(res);
+});
+
+app.get("/auth/agents", async (c) => {
+  console.log(`${c.req.method} /auth/agents`);
+  const res = await db.findAll("agent");
+  if (!res) return c.json({ success: false });
+  return c.json(res);
+});
+
+app.get("/auth/errors", async (c) => {
+  console.log(`${c.req.method} /auth/errors`);
+  const res = await db.findAll("error");
+  if (!res) return c.json({ success: false });
   return c.json(res);
 });
 

@@ -16,6 +16,6 @@ export const getUser = async (username: string, password: string) => {
 };
 
 export const findAllUsers = async () => {
-  const dbRes = await turso.execute("SELECT username FROM users");
+  const dbRes = await turso.execute("SELECT username, id FROM users");
   return dbRes;
 };

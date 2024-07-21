@@ -155,7 +155,7 @@ app.get("/auth/agents", async (c) => {
   console.log(`${c.req.method} /auth/agents`);
   const res = await db.findAll("agent");
   if (!res) return c.json({ success: false });
-  console.log(res);
+  console.log("res in /auth/agents ", res);
   return c.json(res.rows);
 });
 

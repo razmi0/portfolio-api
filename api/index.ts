@@ -34,6 +34,7 @@ app.use("/auth/*", authCors, async (c, next) => {
   const decodedPayload = await verify(clientTk, tkSec as string, "HS256");
   console.log("connection : ", decodedPayload);
   if (!decodedPayload) throw new HTTPException(401, { message: "Unauthorized" });
+  console.log("Headers : ", c.req.header());
   await next();
 });
 
@@ -155,7 +156,6 @@ app.get("/auth/agents", async (c) => {
   console.log(`${c.req.method} /auth/agents`);
   const res = await db.findAll("agent");
   if (!res) return c.json({ success: false });
-
   return c.json(res.rows);
 });
 

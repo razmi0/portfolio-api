@@ -21,7 +21,7 @@ const insertNewAgent = async (data: Omit<UserAgentInfo, "created_at" | "updated_
   const { id, ip, platform, city, continent, country, region, latitude, longitude, timezone } = data;
 
   const population = 1;
-  const created_at = Date.now();
+  const created_at = new Date(Date.now()).toLocaleString();
   const updated_at = created_at;
 
   const dbRes = await turso.execute({
@@ -57,7 +57,7 @@ const getSimilarAgentIP = async (ip: string): Promise<false | string> => {
 };
 
 const incrementAgent = async (id: string) => {
-  const updated_at = Date.now();
+  const updated_at = new Date(Date.now()).toLocaleString();
   const dbRes = await turso.execute({
     sql: "UPDATE agent SET population = population + 1, updated_at = ? WHERE id = ?",
     args: [updated_at, id],

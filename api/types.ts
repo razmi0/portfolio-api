@@ -26,8 +26,8 @@ export type ErrorTableFieldType = "contact" | "login";
 export type AgentTableArgs = [
   string,
   string,
-  number,
-  number,
+  string,
+  string,
   string,
   string,
   string,

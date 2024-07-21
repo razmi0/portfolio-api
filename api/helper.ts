@@ -5,7 +5,7 @@ import { UserAgentInfo } from "./types";
 export const buildAgentHeader = (
   c: Context<BlankEnv, `${string}/agent`, BlankInput>
 ): Omit<UserAgentInfo, "created_at" | "updated_at" | "platform" | "population" | "id"> => {
-  return {
+  const headerData = {
     ip:
       c.req.header("x-real-ip") ||
       c.req.header("x-forwarded-for") ||
@@ -22,6 +22,12 @@ export const buildAgentHeader = (
     longitude: c.req.header("x-vercel-ip-longitude") || "unknown",
     timezone: c.req.header("x-vercel-ip-timezone") || "unknown",
   };
+  for (let key in headerData) {
+    // @ts-ignore
+    headerData[key].replaceAll("%20", "-");
+  }
+
+  return headerData;
 };
 
 type TimeStamp = Partial<{

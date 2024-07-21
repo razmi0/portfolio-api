@@ -48,3 +48,12 @@ export const timeStamp = (time: TimeStamp) => {
     timestamp,
   };
 };
+
+export const formatAgentData = (data: UserAgentInfo) => {
+  return {
+    ...data,
+    city: data.city.replaceAll("%20", "-") || "unknown",
+    created_at: new Date(data.created_at),
+    updated_at: new Date(data.updated_at),
+  };
+};

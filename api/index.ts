@@ -8,11 +8,12 @@ import { setCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import { sign, verify } from "hono/jwt";
 import { handle } from "hono/vercel";
-import { buildId, timeStamp } from "./helper";
+import { v4 as uuidv4 } from "uuid";
+import { buildAgentHeader, timeStamp } from "./helper";
 import { db } from "./model";
 import { authCors, basePath, setupCors as cors } from "./setup";
 import type { ContactFormType, LoginFormType, MinimalResponse, UserAgentInfo } from "./types";
-import { isInvalidUser, isValuableAgentData, validateContactForm, validateLoginForm } from "./validation";
+import { isInvalidUser, validateContactForm, validateLoginForm } from "./validation";
 
 const tkSec = process.env.TOKEN_SECRET;
 export const config = {
@@ -49,7 +50,7 @@ app.all("/contact", async (c) => {
 
   const res: MinimalResponse = { authorized: false, success: false };
 
-  const id = buildId();
+  const id = uuidv4();
   const data = (await c.req.json()) as ContactFormType;
 
   const { errors, hasError } = validateContactForm(data);
@@ -70,17 +71,16 @@ app.all("/contact", async (c) => {
 /**
  * @description Agent registration endpoint
  * @method POST
- * @table agents (id, userAgent, platform, hardware, locale, connection, population)
+ * @table agents ( ip, created_at, updated_at, platform, city, continent, country, region, latitude, longitude, timezone)
  */
 app.all("/agent", async (c) => {
   console.log(`all : [${c.req.method}] /agent`);
 
   const res: MinimalResponse = { authorized: false, success: false };
-  const id = buildId();
-  const data: UserAgentInfo = await c.req.json();
-  if (!isValuableAgentData(data)) return c.json(res);
+  const { platform }: Pick<UserAgentInfo, "platform"> = await c.req.json();
 
-  const success = await db.startAgentTransaction({ ...data, id });
+  const success = await db.startAgentTransaction({ ...buildAgentHeader(c), platform, id: uuidv4() });
+  if (!success) return c.json(res);
 
   res.authorized = success;
   res.success = success;
@@ -102,7 +102,7 @@ app.all("/login", async (c) => {
   const formError = validateLoginForm(data);
 
   if (formError.hasError) {
-    const _ = await db.insertErrors(buildId(), Object.entries(formError.errors), "login");
+    const _ = await db.insertErrors(uuidv4(), Object.entries(formError.errors), "login");
     return c.json({ res, errors: formError.errors });
   }
 
@@ -167,3 +167,18 @@ app.get("/auth/errors", async (c) => {
 });
 
 export default handle(app);
+
+// Headers :  {
+//   platform: 'Windows', if(windows === undefined) find in userAgent(Iphone, macintosh, linux, android);
+//   x-real-ip: '88.165.192.198',
+//   x-vercel-ip-city: 'Castanet-Tolosan',
+//   x-vercel-ip-continent: 'EU',
+//   x-vercel-ip-country: 'FR',
+//   x-vercel-ip-country-region: 'OCC',
+//   x-vercel-ip-latitude: '43.5179',
+//   x-vercel-ip-longitude: '1.5001',
+//   x-vercel-ip-timezone: 'Europe/Paris',
+// }
+
+// agents cols :
+// id, created_at, updated_at, platform, population, ip, city, continent, country, region, latitude, longitude, timezone

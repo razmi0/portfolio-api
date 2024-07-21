@@ -1,8 +1,27 @@
-import { v4 as uuidv4 } from "uuid";
+import type { Context } from "hono";
+import type { BlankEnv, BlankInput } from "hono/types";
+import { UserAgentInfo } from "./types";
 
-const buildId = () => {
-  const date = new Date();
-  return [date.getHours(), date.getMinutes(), date.getSeconds(), uuidv4().slice(5)].map((d) => d.toString()).join("");
+export const buildAgentHeader = (
+  c: Context<BlankEnv, `${string}/agent`, BlankInput>
+): Omit<UserAgentInfo, "created_at" | "updated_at" | "platform" | "population" | "id"> => {
+  return {
+    ip:
+      c.req.header("x-real-ip") ||
+      c.req.header("x-forwarded-for") ||
+      c.req.header("x-vercel-ip") ||
+      c.req.header("x-vercel-real-ip") ||
+      c.req.header("x-vercel-forwarded-for") ||
+      c.req.header("x-vercel-client-ip") ||
+      "unknown",
+    city: c.req.header("x-vercel-ip-city") || "unknown",
+    continent: c.req.header("x-vercel-ip-continent") || "unknown",
+    country: c.req.header("x-vercel-ip-country") || "unknown",
+    region: c.req.header("x-vercel-ip-country-region") || "unknown",
+    latitude: c.req.header("x-vercel-ip-latitude") || "unknown",
+    longitude: c.req.header("x-vercel-ip-longitude") || "unknown",
+    timezone: c.req.header("x-vercel-ip-timezone") || "unknown",
+  };
 };
 
 type TimeStamp = Partial<{
@@ -16,7 +35,7 @@ type TimeStamp = Partial<{
  * @description Create a timestamp
  * @returns - Date object and timestamp in milliseconds
  */
-const timeStamp = (time: TimeStamp) => {
+export const timeStamp = (time: TimeStamp) => {
   const msNow = Date.now();
   const timestamp =
     msNow +
@@ -29,5 +48,3 @@ const timeStamp = (time: TimeStamp) => {
     timestamp,
   };
 };
-
-export { buildId, timeStamp };

@@ -22,16 +22,39 @@ export type MessagesTableArgs = [string, string, string, string];
 
 export type ErrorTableArgs = [string, string, string];
 export type ErrorTableFieldType = "contact" | "login";
-export type AgentTableArgs = [string, string, string, string, string, string, number];
+
+export type AgentTableArgs = [
+  string,
+  string,
+  number,
+  number,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  number
+];
 
 export type UserTableArgs = [string, string];
 
 export type UserAgentInfo = {
-  userAgent: string;
+  id: string;
+  ip: string;
+  created_at: number;
+  updated_at: number;
   platform: string;
-  hardware: string;
-  locale: string;
-  connection: string;
+  city: string;
+  continent: string;
+  country: string;
+  region: string;
+  latitude: string;
+  longitude: string;
+  timezone: string;
+  population: number;
 };
 
 export type MinimalResponse = {

@@ -4,71 +4,88 @@ import turso from "./index";
 /**
  * Insert an agent to the database
  * @table agent
- * @column id : varchar
- * @column userAgent : varchar
- * @column platform : varchar
- * @column hardware : varchar
- * @column locale : varchar
- * @column connection : varchar
- * @column population : int
+ * @column ip
+ * @column created_at
+ * @column updated_at
+ * @column platform
+ * @column city
+ * @column continent
+ * @column country
+ * @column region
+ * @column latitude
+ * @column longitude
+ * @column timezone
+ * @column population
  */
-const insertNewAgent = async (data: UserAgentInfo & { id: string }) => {
-  const { id, userAgent, platform, hardware, locale, connection } = data;
+const insertNewAgent = async (data: Omit<UserAgentInfo, "created_at" | "updated_at" | "population">) => {
+  const { id, ip, platform, city, continent, country, region, latitude, longitude, timezone } = data;
+
   const population = 1;
+  const created_at = Date.now();
+  const updated_at = created_at;
+
   const dbRes = await turso.execute({
-    sql: "INSERT INTO agent VALUES (?, ?, ?, ?, ?, ?, ?)",
-    args: [id, userAgent, platform, hardware, locale, connection, population] as AgentTableArgs,
+    sql: "INSERT INTO agent VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    args: [
+      id,
+      ip,
+      created_at,
+      updated_at,
+      platform,
+      city,
+      continent,
+      country,
+      region,
+      latitude,
+      longitude,
+      timezone,
+      population,
+    ] as AgentTableArgs,
   });
-  console.log(
-    "Inserted agent",
-    id,
-    data.userAgent,
-    data.platform,
-    data.hardware,
-    data.locale,
-    data.connection,
-    population
-  );
+  console.log("Inserted new agent", ip);
   return dbRes;
 };
 
-const getSimilarAgentID = async (data: UserAgentInfo): Promise<false | string> => {
-  const { userAgent, platform, hardware, locale, connection } = data;
+const getSimilarAgentIP = async (ip: string): Promise<false | string> => {
   const dbRes = await turso.execute({
-    sql: "SELECT id FROM agent WHERE userAgent = ? AND platform = ? AND hardware = ? AND locale = ? AND connection = ?",
-    args: [userAgent, platform, hardware, locale, connection],
+    sql: "SELECT id FROM agent WHERE ip = ?",
+    args: [ip],
   });
+
   if (dbRes.rows.length === 0) return false;
   return dbRes.rows[0][0] as string;
 };
 
-const incrementPopulation = async (id: string) => {
+const incrementAgent = async (id: string) => {
+  const updated_at = Date.now();
   const dbRes = await turso.execute({
-    sql: "UPDATE agent SET population = population + 1 WHERE id = ?",
-    args: [id],
+    sql: "UPDATE agent SET population = population + 1, updated_at = ? WHERE id = ?",
+    args: [updated_at, id],
   });
   console.log("Incremented population", id);
   return dbRes;
 };
 
 type AgentTransactionState = "STARTED" | "COMMITED" | "ROLLBACKED" | "FOUNDED" | "ADDED" | "CLOSED";
-const startAgentTransaction = async (data: UserAgentInfo & { id: string }) => {
+const startAgentTransaction = async (data: Omit<UserAgentInfo, "created_at" | "updated_at" | "population">) => {
   let transactionState: AgentTransactionState = "STARTED";
   const transaction = await turso.transaction("write");
 
+  console.log(data);
+
   try {
-    const id = await getSimilarAgentID(data);
+    const id = await getSimilarAgentIP(data.ip);
     if (!id) {
       transactionState = "ADDED";
       await insertNewAgent(data);
     } else {
       transactionState = "FOUNDED";
-      await incrementPopulation(id);
+      await incrementAgent(id);
     }
     transactionState = "COMMITED";
     await transaction.commit();
   } catch (e) {
-    console.error(`Transaction failed at: ${transactionState} -- Transaction rollbacked`, e);
+    console.error(`Transaction failed at: ${transactionState} -- Transaction rollbacked`);
     console.error("[ERROR] : ", e);
     transactionState = "ROLLBACKED";
     await transaction.rollback();

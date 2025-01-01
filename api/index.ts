@@ -110,7 +110,7 @@ app.all("/login", async (c) => {
 
     const user = await db.getUser(data.username, data.password);
     const invalid = isInvalidUser(user);
-    if (invalid.hasError) return c.json({ res, errors: invalid.errors });
+    if (invalid.hasError) return c.json({ res, errors: invalid.errors }, 401);
 
     // AUTHENTICATED USER
 
